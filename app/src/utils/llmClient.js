@@ -32,27 +32,41 @@ const SYSTEM_PROMPT = `あなたは筋トレ記録を解析するアシスタン
 
 export const processWithLLM = async (text) => {
   try {
+    console.log('LLM処理開始:', text);
+    
+    const requestBody = {
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: text }
+      ],
+      temperature: 0.3,
+      max_tokens: 500,
+      stream: false
+    };
+    
+    console.log('LLMリクエスト:', JSON.stringify(requestBody, null, 2));
+    
     const response = await fetch(LLM_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: "local-model",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: text }
-        ],
-        temperature: 0.3,
-        max_tokens: 500
-      })
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
-      throw new Error(`LLM API Error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('LLM API Error:', response.status, errorText);
+      throw new Error(`LLM API Error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('LLMレスポンス:', data);
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('無効なLLMレスポンス形式');
+    }
+    
     const content = data.choices[0].message.content.trim();
     
     // JSONの抽出（コードブロックがある場合に対応）
