@@ -14,73 +14,32 @@ const RecordItem = ({ record, onDelete }) => {
     }
   };
 
-  const getExerciseEmoji = (exerciseName) => {
-    const name = exerciseName.toLowerCase();
-    if (name.includes('ベンチ') || name.includes('bench')) return '🏋️‍♀️';
-    if (name.includes('スクワット') || name.includes('squat')) return '🦵';
-    if (name.includes('デッドリフト') || name.includes('deadlift')) return '💪';
-    if (name.includes('腹筋') || name.includes('abs')) return '🔥';
-    if (name.includes('腕立て') || name.includes('push')) return '💥';
-    if (name.includes('ランニング') || name.includes('run')) return '🏃‍♂️';
-    return '💪';
-  };
-
-  const totalVolume = record.exercises.reduce((sum, ex) => sum + (ex.volume || 0), 0);
-
   return (
-    <div className="record-item-enhanced">
+    <div className="record-item-simple">
       <div className="record-header">
-        <div className="record-info">
-          <span className="record-time">⏰ {formatTime(record.timestamp)}</span>
-          <span className="total-volume-badge">📊 合計: {totalVolume}kg</span>
-        </div>
+        <span className="record-time">{formatTime(record.timestamp)}</span>
         <button className="delete-btn" onClick={handleDelete}>
-          🗑️
+          削除
         </button>
       </div>
       
-      <div className="exercise-grid">
+      <div className="exercise-list">
         {record.exercises.map((exercise, index) => (
-          <div key={index} className="exercise-card">
-            <div className="exercise-header">
-              <span className="exercise-emoji">{getExerciseEmoji(exercise.name)}</span>
+          <div key={index} className="exercise-simple">
+            <div className="exercise-main">
               <strong className="exercise-name">{exercise.name}</strong>
+              <span className="exercise-details">
+                {exercise.weight > 0 && `${exercise.weight}kg`}
+                {exercise.reps > 0 && ` × ${exercise.reps}回`}
+                {exercise.sets > 0 && ` × ${exercise.sets}セット`}
+              </span>
             </div>
-            <div className="exercise-stats">
-              {exercise.weight > 0 && (
-                <div className="stat-item">
-                  <span className="stat-label">重量</span>
-                  <span className="stat-value">{exercise.weight}kg</span>
-                </div>
-              )}
-              {exercise.reps > 0 && (
-                <div className="stat-item">
-                  <span className="stat-label">回数</span>
-                  <span className="stat-value">{exercise.reps}回</span>
-                </div>
-              )}
-              {exercise.sets > 0 && (
-                <div className="stat-item">
-                  <span className="stat-label">セット</span>
-                  <span className="stat-value">{exercise.sets}セット</span>
-                </div>
-              )}
-              {exercise.volume > 0 && (
-                <div className="stat-item volume-highlight">
-                  <span className="stat-label">ボリューム</span>
-                  <span className="stat-value">{exercise.volume}kg</span>
-                </div>
-              )}
-            </div>
+            {exercise.volume > 0 && (
+              <div className="exercise-volume">{exercise.volume}kg</div>
+            )}
           </div>
         ))}
       </div>
-      
-      {record.raw_input && (
-        <div className="raw-input">
-          💬 「{record.raw_input}」
-        </div>
-      )}
     </div>
   );
 };

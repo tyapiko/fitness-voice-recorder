@@ -61,85 +61,19 @@ const StatsOverview = ({ records }) => {
   }
 
   return (
-    <div className="stats-overview">
-      <h3>📊 トレーニング統計</h3>
-      
-      {/* 今日の統計 */}
-      <div className="stats-section">
-        <h4>🏃‍♂️ 今日の実績</h4>
-        <div className="stats-grid">
-          <div className="stat-card primary">
-            <div className="stat-icon">🏋️</div>
-            <div className="stat-info">
-              <div className="stat-number">{todayStats.totalVolume}</div>
-              <div className="stat-label">総ボリューム (kg)</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">📝</div>
-            <div className="stat-info">
-              <div className="stat-number">{todayStats.exerciseCount}</div>
-              <div className="stat-label">実施種目数</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">🔢</div>
-            <div className="stat-info">
-              <div className="stat-number">{todayStats.totalSets}</div>
-              <div className="stat-label">総セット数</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">🔁</div>
-            <div className="stat-info">
-              <div className="stat-number">{todayStats.totalReps}</div>
-              <div className="stat-label">総レップ数</div>
-            </div>
-          </div>
+    <div className="stats-simple">
+      <div className="today-summary">
+        <div className="summary-item">
+          <span className="summary-label">今日の合計</span>
+          <span className="summary-value">{todayStats.totalVolume}kg</span>
         </div>
-      </div>
-
-      {/* 種目別統計 */}
-      {Object.keys(todayStats.exerciseTypes).length > 0 && (
-        <div className="stats-section">
-          <h4>🎯 今日の種目別実績</h4>
-          <div className="exercise-types-grid">
-            {Object.entries(todayStats.exerciseTypes).map(([name, data]) => (
-              <div key={name} className="exercise-type-card">
-                <div className="exercise-type-header">
-                  <span className="exercise-emoji">{data.emoji}</span>
-                  <span className="exercise-name">{name}</span>
-                </div>
-                <div className="exercise-type-stats">
-                  <span className="type-count">{data.count}回実施</span>
-                  <span className="type-volume">{data.volume}kg</span>
-                </div>
-              </div>
-            ))}
+        
+        {workoutDays > 0 && (
+          <div className="summary-item">
+            <span className="summary-label">今週</span>
+            <span className="summary-value">{workoutDays}日 / {weekVolume}kg</span>
           </div>
-        </div>
-      )}
-
-      {/* 週間統計 */}
-      <div className="stats-section">
-        <h4>📈 週間実績</h4>
-        <div className="week-stats">
-          <div className="week-stat-item">
-            <span className="week-stat-label">トレーニング日数</span>
-            <span className="week-stat-value">{workoutDays} / 7日</span>
-          </div>
-          <div className="week-stat-item">
-            <span className="week-stat-label">週間総ボリューム</span>
-            <span className="week-stat-value">{weekVolume}kg</span>
-          </div>
-          <div className="week-stat-item">
-            <span className="week-stat-label">平均/日</span>
-            <span className="week-stat-value">{workoutDays > 0 ? Math.round(weekVolume / workoutDays) : 0}kg</span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

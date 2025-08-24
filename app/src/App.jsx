@@ -65,7 +65,7 @@ function App() {
       )}
 
       <div className="records-section">
-        <h2>📝 本日の記録</h2>
+        <h2>本日の記録</h2>
         <RecordList 
           records={records.filter(record => 
             new Date(record.timestamp).toDateString() === new Date().toDateString()
