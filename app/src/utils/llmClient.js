@@ -3,25 +3,34 @@ const LLM_ENDPOINT = 'http://localhost:1234/v1/chat/completions';
 const GYM_SYSTEM_PROMPT = `あなたはジムでの筋トレ記録を解析するアシスタントです。
 日本語の自然な表現から、以下の情報を抽出してJSON形式で返してください：
 
-- 種目名（name）
+- 種目名（name）※音声認識の誤字があれば正しい名称に修正
 - 重量（weight）※必須、単位も識別
 - 回数（reps）
 - セット数（sets）
+
+【重要】音声認識による誤字修正例：
+- "住宅伏せ" → "腕立て伏せ"
+- "ベット" → "ベンチプレス"
+- "スカート" → "スクワット" 
+- "腹金" → "腹筋"
+- "デッドリフト" → "デッドリフト"（正しい）
+
+一般的な筋トレ種目名に近い音の誤認識は積極的に修正してください。
 
 計算ルール：
 - volume = weight * reps * sets
 
 例:
-入力: "ベンチプレス60kg10回3セット"
+入力: "住宅伏せ20回3セット"
 出力: {
   "exercises": [
     {
-      "name": "ベンチプレス",
-      "weight": 60,
+      "name": "腕立て伏せ",
+      "weight": 0,
       "weight_unit": "kg",
-      "reps": 10,
+      "reps": 20,
       "sets": 3,
-      "volume": 1800
+      "volume": 60
     }
   ],
   "confidence": 0.95
@@ -30,20 +39,30 @@ const GYM_SYSTEM_PROMPT = `あなたはジムでの筋トレ記録を解析す�
 const HOME_SYSTEM_PROMPT = `あなたは自宅での筋トレ記録を解析するアシスタントです。
 日本語の自然な表現から、以下の情報を抽出してJSON形式で返してください：
 
-- 種目名（name）
+- 種目名（name）※音声認識の誤字があれば正しい名称に修正
 - 回数（reps）※自重トレーニングなので回数重視
 - セット数（sets）
+
+【重要】音声認識による誤字修正例：
+- "住宅伏せ" → "腕立て伏せ"
+- "腹金" → "腹筋"
+- "懸垂" → "懸垂"（正しい）
+- "スカート" → "スクワット"
+- "ランニング" → "ランニング"（正しい）
+- "柔軟" → "ストレッチ"
+
+自重トレーニング種目名の音声認識誤字は積極的に修正してください。
 
 自重トレーニングなので重量は0に設定してください。
 計算ルール：
 - volume = reps * sets (重量なしの場合)
 
 例:
-入力: "腹筋30回3セット"
+入力: "住宅伏せ30回3セット"
 出力: {
   "exercises": [
     {
-      "name": "腹筋",
+      "name": "腕立て伏せ",
       "weight": 0,
       "weight_unit": "kg",
       "reps": 30,
@@ -123,12 +142,42 @@ export const processWithLLM = async (text, workoutMode = 'gym') => {
     console.error('LLM処理エラー:', error);
     
     // フォールバック: 簡単な解析を試行
-    return fallbackParse(text);
+    return fallbackParse(text, workoutMode);
   }
 };
 
+// 音声認識誤字修正辞書
+const EXERCISE_CORRECTIONS = {
+  '住宅伏せ': '腕立て伏せ',
+  '腹金': '腹筋',
+  'スカート': 'スクワット',
+  'ベット': 'ベンチプレス',
+  'デット': 'デッドリフト',
+  'ランジ': 'ランジ',
+  'プランク': 'プランク',
+  '懸垂': '懸垂',
+  '柔軟': 'ストレッチ'
+};
+
+// 種目名の誤字修正
+const correctExerciseName = (name) => {
+  // 完全一致
+  if (EXERCISE_CORRECTIONS[name]) {
+    return EXERCISE_CORRECTIONS[name];
+  }
+  
+  // 部分一致で修正
+  for (const [wrong, correct] of Object.entries(EXERCISE_CORRECTIONS)) {
+    if (name.includes(wrong)) {
+      return correct;
+    }
+  }
+  
+  return name; // 修正できない場合はそのまま
+};
+
 // フォールバック機能: LLMが使用できない場合の簡単な解析
-const fallbackParse = (text) => {
+const fallbackParse = (text, workoutMode = 'gym') => {
   const exercises = [];
   
   // 基本的なパターンマッチング
@@ -136,27 +185,44 @@ const fallbackParse = (text) => {
     /(\w+)\s*(\d+)kg\s*(\d+)回\s*(\d+)セット/g,
     /(\w+)\s*(\d+)キロ\s*(\d+)回\s*(\d+)セット/g,
     /(\w+)\s*(\d+)kg\s*(\d+)rep\s*(\d+)set/gi,
+    /(\w+)\s*(\d+)回\s*(\d+)セット/g,  // 自重用パターン
   ];
 
   patterns.forEach(pattern => {
     let match;
     while ((match = pattern.exec(text)) !== null) {
-      const [, name, weight, reps, sets] = match;
+      let [, name, weight, reps, sets] = match;
+      
+      // 重量がない場合のパターン
+      if (!sets && reps && weight) {
+        sets = weight;
+        weight = 0;
+        reps = parseInt(reps);
+      }
+      
+      // 種目名の誤字修正
+      name = correctExerciseName(name);
+      
+      const weightNum = parseInt(weight) || 0;
+      const repsNum = parseInt(reps) || 0;
+      const setsNum = parseInt(sets) || 0;
+      
       exercises.push({
         name: name,
-        weight: parseInt(weight),
+        weight: workoutMode === 'home' ? 0 : weightNum,
         weight_unit: 'kg',
-        reps: parseInt(reps),
-        sets: parseInt(sets),
-        volume: parseInt(weight) * parseInt(reps) * parseInt(sets)
+        reps: repsNum,
+        sets: setsNum,
+        volume: workoutMode === 'home' ? repsNum * setsNum : weightNum * repsNum * setsNum
       });
     }
   });
 
   // パターンが一致しない場合のデフォルト
   if (exercises.length === 0) {
+    const correctedName = correctExerciseName(text);
     exercises.push({
-      name: text,
+      name: correctedName,
       weight: 0,
       weight_unit: 'kg',
       reps: 0,
