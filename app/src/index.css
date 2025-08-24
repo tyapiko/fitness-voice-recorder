@@ -332,6 +332,67 @@ body {
   color: #007bff;
 }
 
+/* Past Records Styles */
+.past-records {
+  margin-top: 20px;
+}
+
+.date-group {
+  margin-bottom: 24px;
+}
+
+.date-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: #495057;
+  margin: 0 0 12px 0;
+  padding: 8px 0;
+  border-bottom: 2px solid #e9ecef;
+  display: flex;
+  align-items: center;
+}
+
+.date-header:before {
+  content: '📅';
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.date-records {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 16px;
+}
+
+.more-records-note {
+  text-align: center;
+  padding: 16px;
+  color: #6c757d;
+  font-size: 14px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin-top: 16px;
+}
+
+/* Records Section Spacing */
+.records-section {
+  margin-bottom: 32px;
+}
+
+.records-section:last-child {
+  margin-bottom: 0;
+}
+
+.records-section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 16px 0;
+  padding: 0 0 8px 0;
+  border-bottom: 2px solid #007bff;
+}
+
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
   .today-summary {
@@ -341,5 +402,13 @@ body {
   
   .container {
     padding: 10px;
+  }
+  
+  .date-records {
+    padding-left: 8px;
+  }
+  
+  .date-header {
+    font-size: 15px;
   }
 }

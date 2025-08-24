@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import VoiceRecorder from './components/VoiceRecorder';
 import RecordList from './components/RecordList';
+import PastRecordList from './components/PastRecordList';
 import StatsOverview from './components/StatsOverview';
 import useIndexedDB from './hooks/useIndexedDB';
 
@@ -39,13 +40,31 @@ function App() {
     }
   };
 
-  const getTodayVolume = () => {
+  const getTodayRecords = () => {
     const today = new Date().toDateString();
-    return records
-      .filter(record => new Date(record.timestamp).toDateString() === today)
-      .reduce((total, record) => {
-        return total + record.exercises.reduce((sum, ex) => sum + (ex.volume || 0), 0);
-      }, 0);
+    return records.filter(record => 
+      new Date(record.timestamp).toDateString() === today
+    );
+  };
+
+  const getPastRecords = () => {
+    const today = new Date().toDateString();
+    return records.filter(record => 
+      new Date(record.timestamp).toDateString() !== today
+    );
+  };
+
+  // 日付別にグループ化
+  const groupRecordsByDate = (records) => {
+    const grouped = {};
+    records.forEach(record => {
+      const date = new Date(record.timestamp).toDateString();
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push(record);
+    });
+    return grouped;
   };
 
   return (
@@ -86,13 +105,22 @@ function App() {
       <div className="records-section">
         <h2>本日の記録</h2>
         <RecordList 
-          records={records.filter(record => 
-            new Date(record.timestamp).toDateString() === new Date().toDateString()
-          )}
+          records={getTodayRecords()}
           onDelete={deleteRecord}
           workoutMode={workoutMode}
         />
       </div>
+
+      {getPastRecords().length > 0 && (
+        <div className="records-section">
+          <h2>過去の記録</h2>
+          <PastRecordList 
+            records={getPastRecords()}
+            onDelete={deleteRecord}
+            workoutMode={workoutMode}
+          />
+        </div>
+      )}
     </div>
   );
 }
