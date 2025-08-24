@@ -7,6 +7,7 @@ import useIndexedDB from './hooks/useIndexedDB';
 function App() {
   const [records, setRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [workoutMode, setWorkoutMode] = useState('gym'); // 'gym' or 'home'
   const { getRecords, deleteRecord: deleteFromDB, isInitialized } = useIndexedDB();
 
   useEffect(() => {
@@ -52,16 +53,34 @@ function App() {
       <header className="header">
         <h1>WorkoutVoice</h1>
         <p>音声で筋トレ記録を簡単に</p>
+        
+        <div className="mode-selector">
+          <button 
+            className={`mode-btn ${workoutMode === 'gym' ? 'active' : ''}`}
+            onClick={() => setWorkoutMode('gym')}
+          >
+            ウェイトトレーニング
+            <span className="mode-desc">ジム・重量あり</span>
+          </button>
+          <button 
+            className={`mode-btn ${workoutMode === 'home' ? 'active' : ''}`}
+            onClick={() => setWorkoutMode('home')}
+          >
+            自重トレーニング
+            <span className="mode-desc">自宅・重量なし</span>
+          </button>
+        </div>
       </header>
 
       <VoiceRecorder 
         onRecordSaved={addRecord} 
         isLoading={isLoading}
         setIsLoading={setIsLoading}
+        workoutMode={workoutMode}
       />
 
       {records.length > 0 && (
-        <StatsOverview records={records} />
+        <StatsOverview records={records} workoutMode={workoutMode} />
       )}
 
       <div className="records-section">
@@ -71,6 +90,7 @@ function App() {
             new Date(record.timestamp).toDateString() === new Date().toDateString()
           )}
           onDelete={deleteRecord}
+          workoutMode={workoutMode}
         />
       </div>
     </div>

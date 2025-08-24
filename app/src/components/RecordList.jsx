@@ -1,7 +1,7 @@
 import React from 'react';
 import RecordItem from './RecordItem';
 
-const RecordList = ({ records, onDelete }) => {
+const RecordList = ({ records, onDelete, workoutMode }) => {
   if (records.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '40px', color: '#6c757d' }}>
@@ -17,6 +17,7 @@ const RecordList = ({ records, onDelete }) => {
           key={record.id} 
           record={record} 
           onDelete={onDelete}
+          workoutMode={workoutMode}
         />
       ))}
     </div>

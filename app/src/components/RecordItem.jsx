@@ -1,6 +1,6 @@
 import React from 'react';
 
-const RecordItem = ({ record, onDelete }) => {
+const RecordItem = ({ record, onDelete, workoutMode = 'gym' }) => {
   const formatTime = (date) => {
     return new Date(date).toLocaleTimeString('ja-JP', {
       hour: '2-digit',
@@ -29,13 +29,15 @@ const RecordItem = ({ record, onDelete }) => {
             <div className="exercise-main">
               <strong className="exercise-name">{exercise.name}</strong>
               <span className="exercise-details">
-                {exercise.weight > 0 && `${exercise.weight}kg`}
-                {exercise.reps > 0 && ` × ${exercise.reps}回`}
+                {workoutMode === 'gym' && exercise.weight > 0 && `${exercise.weight}kg`}
+                {exercise.reps > 0 && ` ${workoutMode === 'gym' && exercise.weight > 0 ? '×' : ''} ${exercise.reps}回`}
                 {exercise.sets > 0 && ` × ${exercise.sets}セット`}
               </span>
             </div>
             {exercise.volume > 0 && (
-              <div className="exercise-volume">{exercise.volume}kg</div>
+              <div className="exercise-volume">
+                {workoutMode === 'gym' ? `${exercise.volume}kg` : `${exercise.volume}回`}
+              </div>
             )}
           </div>
         ))}

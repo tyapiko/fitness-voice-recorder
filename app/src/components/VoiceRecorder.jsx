@@ -3,7 +3,7 @@ import useSpeechRecognition from '../hooks/useSpeechRecognition';
 import useLLM from '../hooks/useLLM';
 import useIndexedDB from '../hooks/useIndexedDB';
 
-const VoiceRecorder = ({ onRecordSaved, isLoading, setIsLoading }) => {
+const VoiceRecorder = ({ onRecordSaved, isLoading, setIsLoading, workoutMode }) => {
   const [recognizedText, setRecognizedText] = useState('');
   const { isListening, startListening, stopListening } = useSpeechRecognition(setRecognizedText);
   const { processWithLLM } = useLLM();
@@ -23,7 +23,7 @@ const VoiceRecorder = ({ onRecordSaved, isLoading, setIsLoading }) => {
 
     setIsLoading(true);
     try {
-      const structuredData = await processWithLLM(recognizedText);
+      const structuredData = await processWithLLM(recognizedText, workoutMode);
       
       const record = {
         id: crypto.randomUUID(),

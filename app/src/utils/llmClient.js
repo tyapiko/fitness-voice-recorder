@@ -1,18 +1,15 @@
 const LLM_ENDPOINT = 'http://localhost:1234/v1/chat/completions';
 
-const SYSTEM_PROMPT = `あなたは筋トレ記録を解析するアシスタントです。
+const GYM_SYSTEM_PROMPT = `あなたはジムでの筋トレ記録を解析するアシスタントです。
 日本語の自然な表現から、以下の情報を抽出してJSON形式で返してください：
 
 - 種目名（name）
-- 重量（weight）※単位も識別、単位がない場合は0
+- 重量（weight）※必須、単位も識別
 - 回数（reps）
 - セット数（sets）
 
 計算ルール：
 - volume = weight * reps * sets
-
-認識できない場合は、confidence を低く設定してください。
-必ず有効なJSONのみを返してください。
 
 例:
 入力: "ベンチプレス60kg10回3セット"
@@ -30,13 +27,42 @@ const SYSTEM_PROMPT = `あなたは筋トレ記録を解析するアシスタン
   "confidence": 0.95
 }`;
 
-export const processWithLLM = async (text) => {
+const HOME_SYSTEM_PROMPT = `あなたは自宅での筋トレ記録を解析するアシスタントです。
+日本語の自然な表現から、以下の情報を抽出してJSON形式で返してください：
+
+- 種目名（name）
+- 回数（reps）※自重トレーニングなので回数重視
+- セット数（sets）
+
+自重トレーニングなので重量は0に設定してください。
+計算ルール：
+- volume = reps * sets (重量なしの場合)
+
+例:
+入力: "腹筋30回3セット"
+出力: {
+  "exercises": [
+    {
+      "name": "腹筋",
+      "weight": 0,
+      "weight_unit": "kg",
+      "reps": 30,
+      "sets": 3,
+      "volume": 90
+    }
+  ],
+  "confidence": 0.95
+}`;
+
+export const processWithLLM = async (text, workoutMode = 'gym') => {
   try {
-    console.log('LLM処理開始:', text);
+    console.log('LLM処理開始:', text, 'モード:', workoutMode);
+    
+    const systemPrompt = workoutMode === 'gym' ? GYM_SYSTEM_PROMPT : HOME_SYSTEM_PROMPT;
     
     const requestBody = {
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: systemPrompt },
         { role: "user", content: text }
       ],
       temperature: 0.3,
