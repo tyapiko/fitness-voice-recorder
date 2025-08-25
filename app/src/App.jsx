@@ -76,6 +76,7 @@ function App() {
             isLoading={isLoading}
             setIsLoading={setIsLoading}
             todayRecords={getTodayRecords()}
+            allRecords={records}
           />
         );
       case 'progress':
@@ -94,14 +95,14 @@ function App() {
         <p>音声で自重トレーニング記録を簡単に</p>
       </header>
 
-      <main className="app-main">
-        {renderActiveTab()}
-      </main>
-
       <TabNavigation 
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
       />
+
+      <main className="app-main">
+        {renderActiveTab()}
+      </main>
     </div>
   );
 }

@@ -7,6 +7,11 @@ export class WorkoutDatabase extends Dexie {
     this.version(1).stores({
       workouts: '&id, timestamp, raw_input, exercises, created_at, updated_at'
     });
+
+    this.version(2).stores({
+      workouts: '&id, timestamp, raw_input, exercises, created_at, updated_at',
+      customExercises: '&id, name, category, targetMuscle, icon, unit, isCustom, keywords'
+    });
   }
 }
 

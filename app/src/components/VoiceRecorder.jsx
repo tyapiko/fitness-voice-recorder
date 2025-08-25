@@ -1,13 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useSpeechRecognition from '../hooks/useSpeechRecognition';
 import useLLM from '../hooks/useLLM';
 import useIndexedDB from '../hooks/useIndexedDB';
 
 const VoiceRecorder = ({ onRecordSaved, isLoading, setIsLoading }) => {
   const [recognizedText, setRecognizedText] = useState('');
+  const [customExercises, setCustomExercises] = useState([]);
   const { isListening, startListening, stopListening } = useSpeechRecognition(setRecognizedText);
   const { processWithLLM } = useLLM();
-  const { saveRecord } = useIndexedDB();
+  const { saveRecord, getCustomExercises } = useIndexedDB();
+
+  // カスタム種目を読み込む
+  useEffect(() => {
+    const loadCustomExercises = async () => {
+      try {
+        const exercises = await getCustomExercises();
+        setCustomExercises(exercises);
+      } catch (error) {
+        console.error('カスタム種目読み込みエラー:', error);
+      }
+    };
+    loadCustomExercises();
+  }, [getCustomExercises]);
 
   const handleRecord = () => {
     if (isListening) {
@@ -23,7 +37,7 @@ const VoiceRecorder = ({ onRecordSaved, isLoading, setIsLoading }) => {
 
     setIsLoading(true);
     try {
-      const structuredData = await processWithLLM(recognizedText);
+      const structuredData = await processWithLLM(recognizedText, customExercises);
       
       // 日付が指定されている場合はその日付を使用、なければ現在日時
       let recordTimestamp = new Date();

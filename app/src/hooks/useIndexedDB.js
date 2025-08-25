@@ -101,13 +101,59 @@ const useIndexedDB = () => {
     }
   }, [isInitialized]);
 
+  const saveCustomExercise = useCallback(async (customExercise) => {
+    if (!isInitialized) {
+      throw new Error('データベースが初期化されていません');
+    }
+
+    try {
+      const id = await db.customExercises.add(customExercise);
+      console.log('カスタム種目保存完了:', id);
+      return id;
+    } catch (error) {
+      console.error('カスタム種目保存エラー:', error);
+      throw error;
+    }
+  }, [isInitialized]);
+
+  const getCustomExercises = useCallback(async () => {
+    if (!isInitialized) {
+      return [];
+    }
+
+    try {
+      const exercises = await db.customExercises.toArray();
+      return exercises;
+    } catch (error) {
+      console.error('カスタム種目取得エラー:', error);
+      return [];
+    }
+  }, [isInitialized]);
+
+  const deleteCustomExercise = useCallback(async (id) => {
+    if (!isInitialized) {
+      throw new Error('データベースが初期化されていません');
+    }
+
+    try {
+      await db.customExercises.delete(id);
+      console.log('カスタム種目削除完了:', id);
+    } catch (error) {
+      console.error('カスタム種目削除エラー:', error);
+      throw error;
+    }
+  }, [isInitialized]);
+
   return {
     isInitialized,
     saveRecord,
     getRecords,
     deleteRecord,
     getTodayRecords,
-    clearAllRecords
+    clearAllRecords,
+    saveCustomExercise,
+    getCustomExercises,
+    deleteCustomExercise
   };
 };
 

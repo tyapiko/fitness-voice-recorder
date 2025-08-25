@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import WeeklyChart from './WeeklyChart';
-import ExerciseChart from './ExerciseChart';
+import { EXERCISE_LIST, EXERCISE_CATEGORIES, calculateBodyPartStats, BODY_PART_LEVELS } from '../data/exerciseTypes.js';
 
 const ProgressTab = ({ records }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('week');
@@ -57,65 +56,49 @@ const ProgressTab = ({ records }) => {
     return streak;
   };
 
-  // 週間データを生成
-  const generateWeeklyData = () => {
-    const filteredRecords = getFilteredRecords();
-    const weekData = [];
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateString = date.toDateString();
-      
-      const dayRecords = filteredRecords.filter(record => 
-        new Date(record.timestamp).toDateString() === dateString
-      );
-      
-      const totalReps = dayRecords.reduce((sum, record) => 
-        sum + record.exercises.reduce((exerciseSum, ex) => 
-          exerciseSum + (ex.reps || 0), 0
-        ), 0
-      );
-      
-      weekData.push({
-        date: date.getDate(),
-        dayName: date.toLocaleDateString('ja-JP', { weekday: 'short' }),
-        reps: totalReps,
-        hasRecord: dayRecords.length > 0
-      });
-    }
-    
-    return weekData;
-  };
-
-  // 人気種目TOP5を計算
-  const getTopExercises = () => {
+  // 固定メニューベースの種目統計を計算
+  const getExerciseStats = () => {
     const filteredRecords = getFilteredRecords();
     const exerciseStats = {};
     
+    
+    // 全ての固定メニューを初期化
+    EXERCISE_LIST.forEach(exercise => {
+      exerciseStats[exercise.name] = {
+        ...exercise,
+        totalReps: 0,
+        totalSets: 0,
+        sessions: 0,
+        lastPerformed: null
+      };
+    });
+    
+    // 実際の記録データで統計を更新
     filteredRecords.forEach(record => {
       record.exercises.forEach(exercise => {
-        if (!exerciseStats[exercise.name]) {
-          exerciseStats[exercise.name] = {
-            name: exercise.name,
-            totalReps: 0,
-            sessions: 0
-          };
+        if (exerciseStats[exercise.name]) {
+          exerciseStats[exercise.name].totalReps += exercise.reps || 0;
+          exerciseStats[exercise.name].totalSets += exercise.sets || 0;
+          exerciseStats[exercise.name].sessions += 1;
+          exerciseStats[exercise.name].lastPerformed = record.timestamp;
         }
-        exerciseStats[exercise.name].totalReps += exercise.reps || 0;
-        exerciseStats[exercise.name].sessions += 1;
       });
     });
     
-    return Object.values(exerciseStats)
-      .sort((a, b) => b.totalReps - a.totalReps)
-      .slice(0, 5);
+    return Object.values(exerciseStats);
   };
 
   const streak = calculateStreak();
-  const weekData = generateWeeklyData();
-  const topExercises = getTopExercises();
-  const maxReps = Math.max(...weekData.map(d => d.reps), 1);
+  
+  // 安全にexerciseStatsを取得
+  let exerciseStats = [];
+  
+  try {
+    exerciseStats = getExerciseStats();
+  } catch (error) {
+    console.error('Exercise stats calculation error:', error);
+    exerciseStats = [];
+  }
 
   return (
     <div className="progress-tab">
@@ -149,55 +132,86 @@ const ProgressTab = ({ records }) => {
         </button>
       </div>
 
-      {/* チャート表示 */}
-      <div className="charts-grid">
-        <WeeklyChart weekData={weekData} chartType="bar" />
-        <ExerciseChart topExercises={topExercises} />
+
+      {/* 体の部位レベル表示 */}
+      <div className="body-part-levels">
+        <h3>体の部位レベル 🏆</h3>
+        <div className="level-cards">
+          {(() => {
+            const bodyPartStats = calculateBodyPartStats(getFilteredRecords());
+            return Object.entries(bodyPartStats).map(([bodyPart, stats]) => (
+              <div key={bodyPart} className="level-card">
+                <div className="level-header">
+                  <span className="body-part-name">{bodyPart}</span>
+                  <span className="level-badge" style={{ backgroundColor: stats.color }}>
+                    Lv.{stats.level}
+                  </span>
+                </div>
+                <div className="level-name" style={{ color: stats.color }}>
+                  {stats.name}
+                </div>
+                <div className="level-stats">
+                  <span className="total-reps">{stats.totalReps}回</span>
+                  {stats.nextThreshold && (
+                    <span className="next-level">
+                      次のレベルまで {stats.nextThreshold - stats.totalReps}回
+                    </span>
+                  )}
+                </div>
+                {stats.nextThreshold && (
+                  <div className="level-progress">
+                    <div 
+                      className="level-progress-fill" 
+                      style={{ 
+                        width: `${((stats.totalReps - BODY_PART_LEVELS[stats.level].threshold) / 
+                          (stats.nextThreshold - BODY_PART_LEVELS[stats.level].threshold)) * 100}%`,
+                        backgroundColor: stats.color 
+                      }}
+                    ></div>
+                  </div>
+                )}
+              </div>
+            ));
+          })()}
+        </div>
       </div>
 
-      {/* 人気種目 */}
-      <div className="top-exercises">
-        <h3>よくやる種目 TOP5</h3>
-        <div className="progress-table-container">
-          <table className="progress-table">
-            <thead>
-              <tr>
-                <th>順位</th>
-                <th>種目名</th>
-                <th>重量</th>
-                <th>合計回数</th>
-                <th>セッション数</th>
-                <th>総合計</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topExercises.map((exercise, index) => {
-                // 重量を取得（最初のレコードから）
-                const exerciseWeight = getFilteredRecords()
-                  .flatMap(record => record.exercises)
-                  .find(ex => ex.name === exercise.name)?.weight || 0;
-                
-                const totalVolume = exerciseWeight > 0 
-                  ? exerciseWeight * exercise.totalReps
-                  : exercise.totalReps;
+      {/* 全種目の記録カード */}
+      <div className="progress-exercises">
+        <h3>全種目の記録 📊</h3>
+        <div className="progress-exercise-grid">
+          {EXERCISE_LIST.map(exercise => {
+            const stats = exerciseStats.find(stat => stat.name === exercise.name);
+            const hasData = stats && stats.totalReps > 0;
+            const lastPerformed = (stats && stats.lastPerformed) 
+              ? new Date(stats.lastPerformed).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })
+              : null;
 
-                return (
-                  <tr key={exercise.name}>
-                    <td className="rank-cell">#{index + 1}</td>
-                    <td className="exercise-name-cell">{exercise.name}</td>
-                    <td className="weight-cell">
-                      {exerciseWeight > 0 ? `${exerciseWeight}kg` : '-'}
-                    </td>
-                    <td className="reps-cell">{exercise.totalReps}回</td>
-                    <td className="sessions-cell">{exercise.sessions}回</td>
-                    <td className="total-cell">
-                      {exerciseWeight > 0 ? `${totalVolume}kg` : `${totalVolume}`}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+            return (
+              <div key={exercise.id} className={`progress-exercise-card ${hasData ? 'has-data' : 'no-data'}`}>
+                <div className="progress-exercise-header">
+                  <span className="progress-exercise-icon">{exercise.icon}</span>
+                  <span className="progress-exercise-name">{exercise.name}</span>
+                </div>
+                <div className="progress-exercise-stats">
+                  {hasData ? (
+                    <>
+                      <div className="stat-item">
+                        <span className="stat-value">{stats.totalReps}</span>
+                        <span className="stat-unit">{exercise.unit}</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-value">{stats.totalSets}</span>
+                        <span className="stat-unit">セット</span>
+                      </div>
+                    </>
+                  ) : (
+                    <span className="no-data">記録なし</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
