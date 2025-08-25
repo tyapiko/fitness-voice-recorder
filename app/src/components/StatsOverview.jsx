@@ -1,6 +1,6 @@
 import React from 'react';
 
-const StatsOverview = ({ records, workoutMode = 'gym' }) => {
+const StatsOverview = ({ records }) => {
   const today = new Date().toDateString();
   const todayRecords = records.filter(record => 
     new Date(record.timestamp).toDateString() === today
@@ -66,7 +66,7 @@ const StatsOverview = ({ records, workoutMode = 'gym' }) => {
         <div className="summary-item">
           <span className="summary-label">今日の合計</span>
           <span className="summary-value">
-            {workoutMode === 'gym' ? `${todayStats.totalVolume}kg` : `${todayStats.totalVolume}回`}
+            {todayStats.totalVolume}回
           </span>
         </div>
         
@@ -74,7 +74,7 @@ const StatsOverview = ({ records, workoutMode = 'gym' }) => {
           <div className="summary-item">
             <span className="summary-label">今週</span>
             <span className="summary-value">
-              {workoutMode === 'gym' ? `${workoutDays}日 / ${weekVolume}kg` : `${workoutDays}日 / ${weekVolume}回`}
+              {workoutDays}日 / {weekVolume}回
             </span>
           </div>
         )}

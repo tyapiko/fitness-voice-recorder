@@ -3,7 +3,7 @@ import useSpeechRecognition from '../hooks/useSpeechRecognition';
 import useLLM from '../hooks/useLLM';
 import useIndexedDB from '../hooks/useIndexedDB';
 
-const VoiceRecorder = ({ onRecordSaved, isLoading, setIsLoading, workoutMode }) => {
+const VoiceRecorder = ({ onRecordSaved, isLoading, setIsLoading }) => {
   const [recognizedText, setRecognizedText] = useState('');
   const { isListening, startListening, stopListening } = useSpeechRecognition(setRecognizedText);
   const { processWithLLM } = useLLM();
@@ -23,11 +23,20 @@ const VoiceRecorder = ({ onRecordSaved, isLoading, setIsLoading, workoutMode }) 
 
     setIsLoading(true);
     try {
-      const structuredData = await processWithLLM(recognizedText, workoutMode);
+      const structuredData = await processWithLLM(recognizedText);
+      
+      // 日付が指定されている場合はその日付を使用、なければ現在日時
+      let recordTimestamp = new Date();
+      if (structuredData.date) {
+        recordTimestamp = new Date(structuredData.date);
+        // 時刻は現在時刻を使用（日付のみ変更）
+        const now = new Date();
+        recordTimestamp.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+      }
       
       const record = {
         id: crypto.randomUUID(),
-        timestamp: new Date(),
+        timestamp: recordTimestamp,
         raw_input: recognizedText,
         exercises: structuredData.exercises || [],
         created_at: new Date(),

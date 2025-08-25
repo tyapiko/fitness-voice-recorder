@@ -42,6 +42,7 @@ const HOME_SYSTEM_PROMPT = `あなたは自宅での筋トレ記録を解析す�
 - 種目名（name）※音声認識の誤字があれば正しい名称に修正
 - 回数（reps）※自重トレーニングなので回数重視
 - セット数（sets）
+- 日付（date）※日付が明示されている場合のみ、YYYY-MM-DD形式で返す
 
 【重要】音声認識による誤字修正例：
 - "住宅伏せ" → "腕立て伏せ"
@@ -51,13 +52,36 @@ const HOME_SYSTEM_PROMPT = `あなたは自宅での筋トレ記録を解析す�
 - "ランニング" → "ランニング"（正しい）
 - "柔軟" → "ストレッチ"
 
-自重トレーニング種目名の音声認識誤字は積極的に修正してください。
+【日付解析】以下の表現から日付を認識してください：
+- "8月24日" → "2025-08-24"
+- "昨日" → 今日から1日前の日付
+- "一昨日" → 今日から2日前の日付
+- "3日前" → 今日から3日前の日付
+- "先週の月曜日" → 先週の月曜日の日付
+- 日付が含まれない場合は、dateフィールドは含めない
 
 自重トレーニングなので重量は0に設定してください。
 計算ルール：
 - volume = reps * sets (重量なしの場合)
 
-例:
+例1（日付あり）:
+入力: "8月24日腹筋20回2セット"
+出力: {
+  "exercises": [
+    {
+      "name": "腹筋",
+      "weight": 0,
+      "weight_unit": "kg",
+      "reps": 20,
+      "sets": 2,
+      "volume": 40
+    }
+  ],
+  "date": "2025-08-24",
+  "confidence": 0.95
+}
+
+例2（日付なし）:
 入力: "住宅伏せ30回3セット"
 出力: {
   "exercises": [
@@ -73,11 +97,11 @@ const HOME_SYSTEM_PROMPT = `あなたは自宅での筋トレ記録を解析す�
   "confidence": 0.95
 }`;
 
-export const processWithLLM = async (text, workoutMode = 'gym') => {
+export const processWithLLM = async (text) => {
   try {
-    console.log('LLM処理開始:', text, 'モード:', workoutMode);
+    console.log('LLM処理開始:', text);
     
-    const systemPrompt = workoutMode === 'gym' ? GYM_SYSTEM_PROMPT : HOME_SYSTEM_PROMPT;
+    const systemPrompt = HOME_SYSTEM_PROMPT;
     
     const requestBody = {
       messages: [
@@ -177,7 +201,7 @@ const correctExerciseName = (name) => {
 };
 
 // フォールバック機能: LLMが使用できない場合の簡単な解析
-const fallbackParse = (text, workoutMode = 'gym') => {
+const fallbackParse = (text) => {
   const exercises = [];
   
   // 基本的なパターンマッチング
@@ -209,11 +233,11 @@ const fallbackParse = (text, workoutMode = 'gym') => {
       
       exercises.push({
         name: name,
-        weight: workoutMode === 'home' ? 0 : weightNum,
+        weight: 0,
         weight_unit: 'kg',
         reps: repsNum,
         sets: setsNum,
-        volume: workoutMode === 'home' ? repsNum * setsNum : weightNum * repsNum * setsNum
+        volume: repsNum * setsNum
       });
     }
   });
