@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import WeeklyChart from './WeeklyChart';
+import ExerciseChart from './ExerciseChart';
 
 const ProgressTab = ({ records }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('week');
@@ -147,31 +149,10 @@ const ProgressTab = ({ records }) => {
         </button>
       </div>
 
-      {/* 週間グラフ */}
-      <div className="weekly-chart">
-        <h3>週間アクティビティ</h3>
-        <div className="chart-container">
-          {weekData.map((day, index) => (
-            <div key={index} className="chart-day">
-              <div className="chart-bar-container">
-                <div 
-                  className={`chart-bar ${day.hasRecord ? 'has-record' : ''}`}
-                  style={{ 
-                    height: `${Math.max((day.reps / maxReps) * 100, 4)}%`
-                  }}
-                >
-                  {day.reps > 0 && (
-                    <span className="chart-value">{day.reps}</span>
-                  )}
-                </div>
-              </div>
-              <div className="chart-label">
-                <div className="chart-day-name">{day.dayName}</div>
-                <div className="chart-day-date">{day.date}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* チャート表示 */}
+      <div className="charts-grid">
+        <WeeklyChart weekData={weekData} chartType="bar" />
+        <ExerciseChart topExercises={topExercises} />
       </div>
 
       {/* 人気種目 */}
