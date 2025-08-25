@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import VoiceRecorder from './components/VoiceRecorder';
-import RecordList from './components/RecordList';
-import PastRecordList from './components/PastRecordList';
-import StatsOverview from './components/StatsOverview';
-import TrainingMatrix from './components/TrainingMatrix';
+import TabNavigation from './components/TabNavigation';
+import RecordTab from './components/RecordTab';
+import ProgressTab from './components/ProgressTab';
+import HistoryTab from './components/HistoryTab';
 import useIndexedDB from './hooks/useIndexedDB';
 
 function App() {
   const [records, setRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('record');
   const { getRecords, deleteRecord: deleteFromDB, isInitialized } = useIndexedDB();
 
   useEffect(() => {
@@ -67,46 +67,41 @@ function App() {
     return grouped;
   };
 
+  const renderActiveTab = () => {
+    switch (activeTab) {
+      case 'record':
+        return (
+          <RecordTab
+            onRecordSaved={addRecord}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            todayRecords={getTodayRecords()}
+          />
+        );
+      case 'progress':
+        return <ProgressTab records={records} />;
+      case 'history':
+        return <HistoryTab records={records} onDelete={deleteRecord} />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="container">
-      <header className="header">
+    <div className="app-container">
+      <header className="app-header">
         <h1>WorkoutVoice</h1>
         <p>音声で自重トレーニング記録を簡単に</p>
       </header>
 
-      <VoiceRecorder 
-        onRecordSaved={addRecord} 
-        isLoading={isLoading}
-        setIsLoading={setIsLoading}
+      <main className="app-main">
+        {renderActiveTab()}
+      </main>
+
+      <TabNavigation 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
       />
-
-      {records.length > 0 && (
-        <StatsOverview records={records} />
-      )}
-
-      {records.length > 0 && (
-        <TrainingMatrix 
-          records={records}
-        />
-      )}
-
-      <div className="records-section">
-        <h2>本日の記録</h2>
-        <RecordList 
-          records={getTodayRecords()}
-          onDelete={deleteRecord}
-        />
-      </div>
-
-      {getPastRecords().length > 0 && (
-        <div className="records-section">
-          <h2>過去の記録</h2>
-          <PastRecordList 
-            records={getPastRecords()}
-            onDelete={deleteRecord}
-          />
-        </div>
-      )}
     </div>
   );
 }

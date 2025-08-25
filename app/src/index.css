@@ -11,59 +11,352 @@ body {
   line-height: 1.6;
 }
 
-.container {
+/* App Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  background-color: #f5f5f5;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.mode-selector {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-.mode-btn {
+.app-header {
   background: white;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-main {
+  flex: 1;
+  padding: 20px;
+  padding-bottom: 100px; /* Space for bottom navigation */
+  overflow-y: auto;
+}
+
+/* Tab Navigation */
+.tab-navigation {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 800px;
+  width: 100%;
+  background: white;
+  display: flex;
+  padding: 12px 20px 20px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  border-top: 1px solid #e9ecef;
+  z-index: 1000;
+}
+
+.tab-button {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  min-width: 140px;
+  padding: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  min-height: 60px;
+  justify-content: center;
 }
 
-.mode-btn:hover {
-  border-color: #007bff;
+.tab-button:hover {
   background: #f8f9fa;
 }
 
-.mode-btn.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+.tab-button.active {
+  color: #007bff;
+  background: #e7f3ff;
 }
 
-.mode-btn.active .mode-desc {
+.tab-icon {
+  font-size: 24px;
+  margin-bottom: 2px;
+}
+
+.tab-label {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Record Tab */
+.record-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.today-progress-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.today-progress-card h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.progress-stats {
+  display: flex;
+  justify-content: space-around;
+  gap: 16px;
+}
+
+.progress-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.progress-label {
+  font-size: 12px;
   color: rgba(255,255,255,0.8);
 }
 
-.mode-desc {
-  font-size: 12px;
-  color: #6c757d;
-  font-weight: normal;
+.main-record-area {
+  text-align: center;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
+.main-record-area h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #2c3e50;
+}
+
+.record-hint {
+  color: #6c757d;
+  font-size: 14px;
+  margin: 0 0 24px 0;
+}
+
+.today-records {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.today-records h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #2c3e50;
+}
+
+/* Record Table Styles */
+.record-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.record-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 14px;
+}
+
+.record-table thead {
+  background: #f8f9fa;
+}
+
+.record-table th {
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #e9ecef;
+  white-space: nowrap;
+}
+
+.record-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.record-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.record-table tbody tr:hover {
+  background: #f8f9ff;
+}
+
+.exercise-name-cell {
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 80px;
+}
+
+.weight-cell {
+  text-align: center;
+  color: #6c757d;
+  min-width: 60px;
+}
+
+.reps-cell {
+  text-align: center;
+  color: #007bff;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.sets-cell {
+  text-align: center;
+  color: #28a745;
+  font-weight: 500;
+  min-width: 70px;
+}
+
+.total-cell {
+  text-align: center;
+  color: #dc3545;
+  font-weight: 600;
+  min-width: 70px;
+}
+
+.rank-cell {
+  text-align: center;
+  font-weight: 600;
+  color: #ff6b6b;
+  min-width: 50px;
+}
+
+.sessions-cell {
+  text-align: center;
+  color: #17a2b8;
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.action-cell {
+  text-align: center;
+  min-width: 60px;
+}
+
+.delete-btn-table {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.delete-btn-table:hover {
+  background: #c82333;
+}
+
+/* Legacy compact styles for other components */
+.record-list-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.record-item-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.record-time {
+  font-size: 12px;
+  color: #6c757d;
+  min-width: 50px;
+}
+
+.record-exercises {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.exercise-badge {
+  background: #007bff;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.welcome-message {
+  text-align: center;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.welcome-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.welcome-message h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #2c3e50;
+}
+
+.welcome-message p {
+  color: #6c757d;
+  margin: 0 0 24px 0;
+}
+
+.welcome-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #495057;
+}
+
+/* Voice Recorder */
 .voice-section {
   background: white;
   border-radius: 12px;
@@ -144,6 +437,7 @@ body {
   background: #545b62;
 }
 
+/* Records Section */
 .records-section {
   background: white;
   border-radius: 12px;
@@ -162,7 +456,7 @@ body {
 
 .record-header {
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
@@ -196,7 +490,7 @@ body {
   margin: 5px 0;
   border-radius: 6px;
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -220,449 +514,570 @@ body {
   color: #0056b3;
 }
 
-/* Simple Record Item Styles */
-.record-item-simple {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  border: 1px solid #e9ecef;
-}
-
-.record-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.record-time {
-  font-size: 14px;
-  color: #6c757d;
-}
-
-.delete-btn {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  color: #6c757d;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.delete-btn:hover {
-  background: #e9ecef;
-}
-
-.exercise-list {
+/* Progress Tab */
+.progress-tab {
   display: flex;
   flex-direction: column;
+  gap: 24px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: center;
+}
+
+.streak-card {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 16px;
+  text-align: center;
+  min-width: 120px;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.streak-number {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.streak-label {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.period-selector-compact {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.period-btn-compact {
+  flex: 1;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c757d;
+  transition: all 0.3s ease;
+}
+
+.period-btn-compact.active {
+  background: #007bff;
+  color: white;
+}
+
+.weekly-chart {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.weekly-chart h3 {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  color: #2c3e50;
+}
+
+.chart-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  height: 150px;
   gap: 8px;
 }
 
-.exercise-simple {
+.chart-day {
+  flex: 1;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f8f9fa;
+  gap: 8px;
 }
 
-.exercise-simple:last-child {
+.chart-bar-container {
+  flex: 1;
+  display: flex;
+  align-items: end;
+  width: 100%;
+  min-height: 100px;
+  position: relative;
+}
+
+.chart-bar {
+  width: 100%;
+  background: #e9ecef;
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.chart-bar.has-record {
+  background: linear-gradient(to top, #007bff, #4fc3f7);
+}
+
+.chart-value {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.chart-label {
+  text-align: center;
+}
+
+.chart-day-name {
+  font-size: 12px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.chart-day-date {
+  font-size: 11px;
+  color: #6c757d;
+}
+
+.top-exercises {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.top-exercises h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #2c3e50;
+}
+
+/* Progress Table */
+.progress-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.progress-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 14px;
+}
+
+.progress-table thead {
+  background: #f8f9fa;
+}
+
+.progress-table th {
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #e9ecef;
+  white-space: nowrap;
+}
+
+.progress-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.progress-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.exercise-main {
+.progress-table tbody tr:hover {
+  background: #f8f9ff;
+}
+
+/* History Table */
+.history-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  margin-bottom: 20px;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 14px;
+}
+
+.history-table thead {
+  background: #f8f9fa;
+}
+
+.history-table th {
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #e9ecef;
+  white-space: nowrap;
+}
+
+.history-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.history-table tbody tr:hover {
+  background: #f8f9ff;
+}
+
+.detailed-records {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #e9ecef;
+}
+
+.detailed-records h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* Legacy styles for backward compatibility */
+.exercise-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.ranking-number {
+  width: 24px;
+  height: 24px;
+  background: #007bff;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.ranking-info {
+  flex: 1;
+}
+
+.ranking-name {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 2px;
+}
+
+.ranking-stats {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.no-progress-data {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.no-data-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.no-progress-data h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.no-progress-data p {
+  color: #6c757d;
+  margin: 0;
+}
+
+/* History Tab */
+.history-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.month-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.month-nav-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.3s ease;
+}
+
+.month-nav-btn:hover {
+  background: #0056b3;
+  transform: scale(1.05);
+}
+
+.month-title {
+  margin: 0;
+  font-size: 18px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.calendar-container {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.calendar-header-day {
+  text-align: center;
+  font-weight: 600;
+  color: #495057;
+  font-size: 12px;
+  padding: 8px;
+}
+
+.calendar-body {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.exercise-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2c3e50;
+.calendar-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
 }
 
-.exercise-details {
-  font-size: 14px;
-  color: #6c757d;
-}
-
-.exercise-volume {
-  font-size: 14px;
-  font-weight: 600;
-  color: #007bff;
-}
-
-/* Simple Stats Styles */
-.stats-simple {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  border: 1px solid #e9ecef;
-}
-
-.today-summary {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.summary-item {
+.calendar-day {
+  aspect-ratio: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
+  justify-content: center;
+  border: none;
+  background: #f8f9fa;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 44px;
 }
 
-.summary-label {
-  font-size: 12px;
-  color: #6c757d;
-  margin-bottom: 4px;
+.calendar-day:hover {
+  background: #e9ecef;
 }
 
-.summary-value {
-  font-size: 18px;
-  font-weight: 600;
-  color: #007bff;
+.calendar-day.other-month {
+  color: #ced4da;
+  background: transparent;
 }
 
-/* Past Records Styles */
-.past-records {
-  margin-top: 20px;
+.calendar-day.today {
+  background: #007bff;
+  color: white;
 }
 
-.date-group {
-  margin-bottom: 24px;
+.calendar-day.selected {
+  background: #28a745;
+  color: white;
 }
 
-.date-header {
-  font-size: 16px;
-  font-weight: 600;
-  color: #495057;
-  margin: 0 0 12px 0;
-  padding: 8px 0;
-  border-bottom: 2px solid #e9ecef;
+.calendar-day.has-records {
+  background: #e7f3ff;
+  border: 2px solid #007bff;
+}
+
+.calendar-day.has-records.today {
+  background: #007bff;
+}
+
+.calendar-day-number {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.calendar-day-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+}
+
+.record-count {
+  background: #007bff;
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 8px;
+  min-width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-.date-header:before {
-  content: '📅';
-  margin-right: 8px;
-  font-size: 14px;
+.selected-date-details {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.selected-date-details h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #2c3e50;
 }
 
 .date-records {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-left: 16px;
+  gap: 12px;
 }
 
-.more-records-note {
-  text-align: center;
-  padding: 16px;
-  color: #6c757d;
-  font-size: 14px;
+.history-record-item {
   background: #f8f9fa;
-  border-radius: 6px;
-  margin-top: 16px;
-}
-
-/* Records Section Spacing */
-.records-section {
-  margin-bottom: 32px;
-}
-
-.records-section:last-child {
-  margin-bottom: 0;
-}
-
-.records-section h2 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 16px 0;
-  padding: 0 0 8px 0;
-  border-bottom: 2px solid #007bff;
-}
-
-/* Exercise Summary Styles */
-.exercise-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.exercise-section {
-  background: white;
-  border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  border: 1px solid #e9ecef;
+  border-radius: 8px;
 }
 
-.exercise-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 16px 0;
-  padding: 0 0 8px 0;
-  border-bottom: 2px solid #007bff;
-}
-
-.exercise-timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.timeline-item {
+.history-record-item .record-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f8f9fa;
+  margin-bottom: 8px;
 }
 
-.timeline-item:last-child {
-  border-bottom: none;
+.delete-btn-small {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
 }
 
-.timeline-date {
-  font-size: 14px;
-  font-weight: 500;
-  color: #495057;
-  min-width: 60px;
+.delete-btn-small:hover {
+  background: #f8d7da;
 }
 
-.timeline-stats {
+.record-exercises {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.exercise-detail {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
-.stat-item {
-  font-size: 14px;
-  color: #6c757d;
-  padding: 2px 6px;
-  background: #f8f9fa;
-  border-radius: 4px;
+.exercise-name {
+  font-weight: 500;
+  color: #2c3e50;
 }
 
-.stat-total {
-  font-size: 14px;
-  font-weight: 600;
-  color: #007bff;
-  padding: 2px 6px;
-  background: #e7f3ff;
-  border-radius: 4px;
-}
-
-.more-dates-note {
-  text-align: center;
-  padding: 8px;
-  margin-top: 8px;
-  color: #6c757d;
+.exercise-stats {
   font-size: 12px;
-  background: #f8f9fa;
-  border-radius: 4px;
+  color: #6c757d;
+}
+
+.no-records-for-date {
+  text-align: center;
+  padding: 20px;
+  color: #6c757d;
+}
+
+.no-records-for-date p {
+  margin: 0;
+}
+
+.no-history-data {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.no-history-data h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.no-history-data p {
+  color: #6c757d;
+  margin: 0;
 }
 
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
-  .today-summary {
-    flex-direction: column;
-    gap: 12px;
+  .app-container {
+    max-width: 100%;
   }
   
-  .container {
-    padding: 10px;
-  }
-  
-  .date-records {
-    padding-left: 8px;
-  }
-  
-  .date-header {
-    font-size: 15px;
-  }
-  
-  .timeline-stats {
-    gap: 8px;
-  }
-  
-  .stat-item, .stat-total {
-    font-size: 12px;
-    padding: 1px 4px;
-  }
-}
-
-/* Training Matrix Styles */
-.training-matrix {
-  margin-bottom: 30px;
-}
-
-.matrix-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding: 16px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-.period-selector {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.period-btn {
-  background: white;
-  border: 2px solid #e9ecef;
-  border-radius: 6px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.period-btn:hover {
-  border-color: #007bff;
-  background: #f8f9fa;
-}
-
-.period-btn.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
-}
-
-.date-selector {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.date-select {
-  padding: 8px 12px;
-  border: 2px solid #e9ecef;
-  border-radius: 6px;
-  background: white;
-  font-size: 14px;
-  cursor: pointer;
-  min-width: 120px;
-}
-
-.date-select:focus {
-  border-color: #007bff;
-  outline: none;
-}
-
-.matrix-header {
-  margin-bottom: 16px;
-}
-
-.matrix-header h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.no-data {
-  text-align: center;
-  padding: 40px;
-  color: #6c757d;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-.matrix-compact-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
-}
-
-.matrix-compact-card {
-  background: white;
-  border-radius: 6px;
-  padding: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  border: 1px solid #e9ecef;
-  text-align: center;
-}
-
-.exercise-name-compact {
-  font-size: 14px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.stats-compact {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
-.reps-compact {
-  font-size: 16px;
-  font-weight: 600;
-  color: #007bff;
-  background: #e7f3ff;
-  padding: 4px 8px;
-  border-radius: 4px;
-  flex: 1;
-}
-
-.sets-compact {
-  font-size: 14px;
-  font-weight: 500;
-  color: #6c757d;
-  background: #f8f9fa;
-  padding: 4px 8px;
-  border-radius: 4px;
-  flex: 1;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-  .period-selector {
-    gap: 4px;
-  }
-  
-  .period-btn {
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-  
-  .matrix-compact-grid {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 8px;
-  }
-  
-  .exercise-name-compact {
-    font-size: 12px;
-  }
-  
-  .reps-compact, .sets-compact {
-    font-size: 14px;
-    padding: 3px 6px;
+  .tab-navigation {
+    max-width: 100%;
   }
 }
