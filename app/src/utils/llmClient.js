@@ -38,35 +38,36 @@ const GYM_SYSTEM_PROMPT = `あなたはジムでの筋トレ記録を解析す�
   "confidence": 0.95
 }`;
 
-const HOME_SYSTEM_PROMPT = `あなたは自宅での筋トレ記録を解析するアシスタントです。
-日本語の自然な表現から、筋トレに関する情報のみを抽出してJSON形式で返してください：
+const generateSystemPrompt = (customExercises = []) => {
+  const customExerciseNames = customExercises.map(ex => ex.name);
+  const allValidExercises = [
+    '腕立て伏せ', '腹筋', 'スクワット', '懸垂', 'プランク', 'ランジ', 'バーピー',
+    'ディップス', 'マウンテンクライマー', 'ジャンピングスクワット',
+    'シットアップ', 'クランチ', 'レッグレイズ', 'カーフレイズ',
+    'ウォーキング', 'ランニング', 'ストレッチ', 'ヨガ',
+    ...customExerciseNames
+  ];
+
+  return `あなたは自宅での筋トレ記録を解析するアシスタントです。
+日本語の自然な表現から、筋トレに関する情報を抽出してJSON形式で返してください：
 
 - 種目名（name）※音声認識の誤字があれば正しい筋トレ種目名に修正
 - 回数（reps）※自重トレーニングなので回数重視
-- セット数（sets）
+- セット数（sets）※省略されていれば1セットとして扱う
 - 日付（date）※日付が明示されている場合のみ、YYYY-MM-DD形式で返す
 
-【重要】筋トレ以外の言葉は絶対に種目として登録しないでください。
-有効な筋トレ種目のみ抽出してください：
-- 腕立て伏せ、腹筋、スクワット、懸垂、プランク、ランジ、バーピー
-- ディップス、マウンテンクライマー、ジャンピングスクワット
-- シットアップ、クランチ、レッグレイズ、カーフレイズ
-- ウォーキング、ランニング、ストレッチ、ヨガ
+対応可能な種目リスト：
+${allValidExercises.map(name => `- ${name}`).join('\n')}
 
-【音声認識誤字修正例（重要）】：
+【音声認識誤字修正例】：
 - "住宅伏せ" → "腕立て伏せ"
-- "腹金" → "腹筋"
-- "研修" → "懸垂" ★重要★
-- "献血" → "懸垂"
-- "検証" → "懸垂" 
-- "賢治" → "懸垂"
-- "懸垂" → "懸垂"（正しい）
+- "腹金" → "腹筋" 
+- "献血"/"検証"/"賢治" → "懸垂"
 - "スカート" → "スクワット"
-- "ランニング" → "ランニング"（正しい）
 - "柔軟" → "ストレッチ"
 
-筋トレに関係のない言葉（例：研修、会議、勉強、仕事など）が含まれていても、
-それらは無視して筋トレ種目のみを抽出してください。
+【重要】英語の単語（test、hello等）は筋トレ種目ではないので、
+これらが入力された場合はexercisesを空配列で返してください。
 
 【日付解析】以下の表現から日付を認識してください：
 - "8月24日" → "2025-08-24"
@@ -129,13 +130,15 @@ const HOME_SYSTEM_PROMPT = `あなたは自宅での筋トレ記録を解析す�
     }
   ],
   "confidence": 0.95
-}`;
+}`
+};
 
 export const processWithLLM = async (text, customExercises = []) => {
   try {
     console.log('LLM処理開始:', text);
+    console.log('カスタム種目:', customExercises);
     
-    const systemPrompt = HOME_SYSTEM_PROMPT;
+    const systemPrompt = generateSystemPrompt(customExercises);
     
     const requestBody = {
       messages: [
@@ -188,13 +191,34 @@ export const processWithLLM = async (text, customExercises = []) => {
     // デフォルト値の設定と種目名の検証
     result.exercises = result.exercises
       .map(exercise => {
-        // 種目名を修正・検証（カスタム種目も含めて）
-        const correctedName = correctExerciseName(exercise.name, customExercises);
-        
-        // 無効な種目名の場合はnullを返す（後でフィルタリング）
-        if (!correctedName) {
-          console.log(`無効な種目名を除外: "${exercise.name}"`);
+        // 英語の明らかに無効な単語のみ最終チェック
+        const invalidEnglishWords = ['test', 'hello', 'ok', 'yes', 'no'];
+        if (invalidEnglishWords.includes(exercise.name.toLowerCase())) {
+          console.log(`明らかに無効な英語単語を除外: "${exercise.name}"`);
           return null;
+        }
+        
+        // 種目名を修正・検証（カスタム種目も含めて） - より寛容に
+        let correctedName = exercise.name;
+        
+        // カスタム種目チェック
+        if (customExercises.find(ex => ex.name === exercise.name)) {
+          correctedName = exercise.name;
+        } else {
+          // 固定種目から検索
+          const fixedExercise = findExerciseByKeyword(exercise.name);
+          if (fixedExercise) {
+            correctedName = fixedExercise.name;
+          } else if (allValidExercises.includes(exercise.name)) {
+            correctedName = exercise.name;
+          }
+          // 見つからなくても、日本語であれば通す（ユーザビリティ優先）
+          else if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(exercise.name)) {
+            correctedName = exercise.name;
+          } else {
+            console.log(`無効な種目名を除外: "${exercise.name}"`);
+            return null;
+          }
         }
         
         const reps = exercise.reps || 0;
@@ -211,18 +235,43 @@ export const processWithLLM = async (text, customExercises = []) => {
       })
       .filter(exercise => exercise !== null); // nullの要素を除外
     
+    console.log('処理後の種目数:', result.exercises.length);
+    console.log('処理後の種目:', result.exercises);
+    
     // すべての種目が無効だった場合はエラーを投げる
     if (result.exercises.length === 0) {
       console.log('有効な筋トレ種目が見つかりませんでした');
-      throw new Error('筋トレに関連する種目が見つかりませんでした');
+      
+      // 入力テキストから種目名らしきものを抽出して具体的なエラーメッセージを作成
+      const possibleExerciseName = extractPossibleExerciseName(text);
+      console.log('抽出された種目名:', possibleExerciseName);
+      if (possibleExerciseName) {
+        const errorMessage = `「${possibleExerciseName}」というトレーニングメニューはありません。\n正しいメニュー名で再度お試しください。`;
+        console.log('作成されたエラーメッセージ:', errorMessage);
+        throw new Error(errorMessage);
+      } else {
+        throw new Error('筋トレに関連する種目が見つかりませんでした。');
+      }
     }
 
     return result;
   } catch (error) {
     console.error('LLM処理エラー:', error);
     
-    // フォールバック: 簡単な解析を試行
-    return fallbackParse(text, customExercises);
+    // LLMエラーの場合でも確実に無効種目エラーを発生させる
+    console.log('LLMエラー発生 - フォールバックでエラー処理');
+    
+    try {
+      // フォールバック: 簡単な解析を試行
+      const fallbackResult = fallbackParse(text, customExercises);
+      console.log('フォールバック結果:', fallbackResult);
+      return fallbackResult;
+    } catch (fallbackError) {
+      console.error('フォールバックでもエラー:', fallbackError);
+      // フォールバックでもダメな場合、確実にエラーを投げる
+      const possibleExerciseName = extractPossibleExerciseName(text);
+      throw new Error(`「${possibleExerciseName}」というトレーニングメニューはありません。\n正しいメニュー名で再度お試しください。`);
+    }
   }
 };
 
@@ -322,6 +371,33 @@ const levenshteinDistance = (str1, str2) => {
   return matrix[str2.length][str1.length];
 };
 
+// 入力テキストから種目名らしきものを抽出
+const extractPossibleExerciseName = (text) => {
+  console.log(`種目名抽出処理: "${text}"`);
+  
+  // 簡単なパターンマッチングで種目名らしきものを抽出
+  const patterns = [
+    /([a-zA-Z\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+)\s*\d+回/,  // "○○10回" のパターン（日本語、英語、数字対応）
+    /([a-zA-Z\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+)\s*\d+セット/, // "○○2セット" のパターン
+    /([a-zA-Z\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+)\s*\d+分/,  // "○○5分" のパターン
+    /([a-zA-Z\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+)\s*\d+秒/,  // "○○30秒" のパターン
+  ];
+  
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      console.log(`パターンマッチ成功: "${match[1]}"`);
+      return match[1];
+    }
+  }
+  
+  // パターンにマッチしない場合は最初の単語を返す
+  const words = text.trim().split(/\s+/);
+  const firstWord = words[0];
+  console.log(`デフォルト抽出: "${firstWord}"`);
+  return firstWord;
+};
+
 // フォールバック機能: LLMが使用できない場合の簡単な解析
 const fallbackParse = (text, customExercises = []) => {
   const exercises = [];
@@ -399,6 +475,18 @@ const fallbackParse = (text, customExercises = []) => {
         sets: 0,
         volume: 0
       });
+    } else {
+      // フォールバックでも無効な場合、具体的なエラーメッセージを作成
+      console.log('フォールバックでも種目が見つかりませんでした');
+      const possibleExerciseName = extractPossibleExerciseName(text);
+      console.log('フォールバック抽出された種目名:', possibleExerciseName);
+      if (possibleExerciseName) {
+        const errorMessage = `「${possibleExerciseName}」というトレーニングメニューはありません。\n正しいメニュー名で再度お試しください。`;
+        console.log('フォールバック作成されたエラーメッセージ:', errorMessage);
+        throw new Error(errorMessage);
+      } else {
+        throw new Error('筋トレに関連する種目が見つかりませんでした。');
+      }
     }
   }
 

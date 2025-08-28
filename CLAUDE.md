@@ -14,6 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 
+**Note**: No linting or testing commands are available in this project. Check code quality manually before committing.
+
 ## Architecture Overview
 
 ### Core Technologies
@@ -28,9 +30,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a **self-weight training recorder** that uses voice input for workout logging. The app has evolved from a dual-mode system to focus specifically on bodyweight exercises.
 
 #### Tab-Based Navigation System
-The app uses a bottom tab navigation with three main sections:
+The app uses a top sticky navigation with three main sections:
 - **Record Tab**: Primary voice recording interface with today's progress
-- **Progress Tab**: Statistics, streaks, and weekly activity charts  
+- **Progress Tab**: Statistics, streaks, and body part level system  
 - **History Tab**: Calendar-based record browsing and management
 
 #### Data Flow Architecture
@@ -47,10 +49,19 @@ The app uses a bottom tab navigation with three main sections:
 - `hooks/useIndexedDB.js` - Database operations and schema management
 - `hooks/useSpeechRecognition.js` - Web Speech API integration
 
+#### Exercise Management System
+- `data/exerciseTypes.js` - Fixed exercise menu with 15 predefined exercises plus custom exercise support
+- `EXERCISE_TYPES` object containing exercise definitions with keywords for speech recognition
+- `BODY_PART_LEVELS` system with 7 progressive levels (初心者 → レジェンド) 
+- `calculateLevel()` function determines user level based on total repetitions
+- Custom exercise addition with AI-powered body part detection via LLM
+- Keyword-based fuzzy matching using Levenshtein distance algorithm
+
 #### Voice Recognition Features
 - **Date Parsing**: Supports natural language dates ("8月24日", "昨日", "3日前")
 - **Exercise Correction**: AI-powered correction of speech recognition errors
 - **Japanese Language**: Optimized prompts for Japanese exercise terminology
+- **Custom Exercise Support**: Dynamic recognition of user-added exercises
 
 ### Data Schema
 
@@ -86,7 +97,7 @@ The voice recording process follows: Speech → Recognition → LLM Processing �
 #### Mobile-First Design
 The UI is optimized for mobile devices with:
 - Large touch targets (44px minimum)
-- Bottom navigation for thumb accessibility  
+- Top navigation for thumb accessibility  
 - Responsive grid layouts that adapt to screen size
 - Sticky headers and proper scroll handling
 

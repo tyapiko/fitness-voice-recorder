@@ -1964,6 +1964,195 @@ body {
   }
 }
 
+/* Message Styles - UX focused (Success, Error, Info) */
+.message {
+  margin: 16px 0;
+  animation: slideInDown 0.3s ease-out, fadeInScale 0.3s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.message-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  position: relative;
+  animation: gentlePulse 2s ease-in-out infinite;
+}
+
+/* Error message style */
+.message.error .message-content {
+  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 10%, #fef2f2 100%);
+  border: 2px solid #fca5a5;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.15);
+}
+
+/* Success message style */
+.message.success .message-content {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 10%, #f0fdf4 100%);
+  border: 2px solid #86efac;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.15);
+}
+
+/* Info message style */
+.message.info .message-content {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 10%, #eff6ff 100%);
+  border: 2px solid #93c5fd;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+}
+
+@keyframes gentlePulse {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+  50% {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.message-icon {
+  font-size: 24px;
+  animation: wobble 1s ease-in-out;
+  flex-shrink: 0;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+.message-text {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.message.error .message-text {
+  color: #991b1b;
+}
+
+.message.success .message-text {
+  color: #166534;
+}
+
+.message.info .message-text {
+  color: #1e40af;
+}
+
+.message-text div {
+  margin-bottom: 4px;
+}
+
+.message-text div:last-child {
+  margin-bottom: 0;
+}
+
+.message-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message.error .message-close {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.message.error .message-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.1);
+  color: #991b1b;
+}
+
+.message.success .message-close {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+
+.message.success .message-close:hover {
+  background: rgba(34, 197, 94, 0.2);
+  transform: scale(1.1);
+  color: #166534;
+}
+
+.message.info .message-close {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.message.info .message-close:hover {
+  background: rgba(59, 130, 246, 0.2);
+  transform: scale(1.1);
+  color: #1e40af;
+}
+
+.message-close:active {
+  transform: scale(0.95);
+}
+
+/* Message appears with higher priority than other content */
+.voice-section .message {
+  order: -1; /* Show message first */
+  z-index: 10;
+}
+
+/* Make message more prominent on mobile */
+@media (max-width: 480px) {
+  .message-content {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  
+  .message-text {
+    font-size: 14px;
+  }
+  
+  .message-icon {
+    font-size: 20px;
+  }
+  
+  .message-close {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+}
+
 @media (max-width: 480px) {
   .app-header {
     margin: 0 8px;
