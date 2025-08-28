@@ -16,6 +16,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Note**: No linting or testing commands are available in this project. Check code quality manually before committing.
 
+### Prerequisites for Development
+- **LM Studio**: Must be running on localhost:1234 with a Japanese-capable model (recommended: Qwen2.5-7B-Instruct)
+- **Browser**: Chrome 100+ or Firefox 100+ required for Web Speech API support
+- **Memory**: 8GB+ recommended for local LLM operation
+
+### Production Deployment Commands
+
+#### Local Production Build
+- `docker-compose -f docker-compose.prod.yml up --build` - Build and run production version locally
+- `npm run build` - Build for production (inside container)
+
+#### GCP Deployment
+- `./deploy.sh` - Interactive deployment script for GCP
+- `gcloud builds submit --config=cloudbuild.yaml .` - Deploy to Cloud Run
+- `gcloud app deploy app.yaml` - Deploy to App Engine
+
 ## Architecture Overview
 
 ### Core Technologies
@@ -62,6 +78,7 @@ The app uses a top sticky navigation with three main sections:
 - **Exercise Correction**: AI-powered correction of speech recognition errors
 - **Japanese Language**: Optimized prompts for Japanese exercise terminology
 - **Custom Exercise Support**: Dynamic recognition of user-added exercises
+- **Input Validation**: Minimal validation approach - only blocks obvious invalid inputs (test, hello, etc.) while allowing natural Japanese input
 
 ### Data Schema
 
@@ -83,11 +100,31 @@ Records are stored with the following structure:
 
 ### LLM Integration Requirements
 
-**Critical**: The app requires LM Studio running on localhost:1234 with a Japanese-capable model. The LLM processes natural speech input and:
+**Development**: The app uses LM Studio running on localhost:1234 with a Japanese-capable model.
+**Production**: Supports multiple LLM providers via environment variables:
+- OpenAI GPT-4/3.5-turbo (recommended for production)
+- Google Gemini API
+- Anthropic Claude API
+- Any OpenAI-compatible API
+
+The LLM processes natural speech input and:
 - Extracts exercise names, reps, sets, and optional dates
 - Corrects common speech recognition errors (住宅伏せ → 腕立て伏せ)
 - Returns structured JSON for database storage
 - Handles relative dates (昨日, 3日前) and absolute dates (8月24日)
+
+### Environment Configuration
+
+Create `.env.production` file based on `.env.example`:
+```bash
+# Production LLM API (choose one)
+VITE_LLM_ENDPOINT=https://api.openai.com/v1/chat/completions
+VITE_LLM_API_KEY=your_openai_api_key_here
+
+# Alternative: Google Gemini
+# VITE_LLM_ENDPOINT=https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
+# VITE_LLM_API_KEY=your_google_api_key_here
+```
 
 ### Development Notes
 
@@ -103,3 +140,35 @@ The UI is optimized for mobile devices with:
 
 #### State Management
 App state flows from the main App.jsx component down to tabs, with IndexedDB as the source of truth. The `useIndexedDB` hook manages all database operations and provides reactive data updates.
+
+#### Error Handling and User Experience
+- **User-Centric Validation**: Prioritizes usability over strict validation - legitimate inputs like "スクワット10回" should never be blocked
+- **Message System**: Uses structured UI messages (success/error/info) with animations instead of basic alerts
+- **Graceful Degradation**: Fallback parsing when LLM is unavailable
+- **Japanese-First Design**: All prompts and error messages optimized for Japanese users
+
+## Troubleshooting
+
+### Voice Recognition Issues
+- Ensure microphone permissions are granted in browser
+- Requires HTTPS or localhost for Web Speech API
+- Chrome/Firefox latest versions recommended
+
+### LLM Connection Errors
+- Verify LM Studio is running on localhost:1234
+- Enable CORS in LM Studio settings if needed
+- Check network connectivity and firewall settings
+
+### Data Storage Issues  
+- IndexedDB must be enabled in browser
+- Private/incognito mode may have limitations
+- Clear browser storage if corruption occurs
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+
+      
+      IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task.

@@ -277,7 +277,8 @@ export const getExerciseByName = (name) => {
 export const addCustomExercise = async (exerciseName) => {
   try {
     // LLMに種目の分析を依頼
-    const response = await fetch('http://localhost:1234/v1/chat/completions', {
+    const llmEndpoint = import.meta.env.VITE_LLM_ENDPOINT || 'http://localhost:1234/v1/chat/completions';
+    const response = await fetch(llmEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

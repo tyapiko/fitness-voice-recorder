@@ -1,0 +1,49 @@
+# Google Cloud Build設定ファイル
+steps:
+  # Dockerイメージをビルド
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-f'
+      - 'app/Dockerfile.prod'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/workout-voice:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/workout-voice:latest'
+      - './app'
+
+  # Container Registryにプッシュ
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/workout-voice:$COMMIT_SHA'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/workout-voice:latest'
+
+  # Cloud Runにデプロイ
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'workout-voice'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/workout-voice:$COMMIT_SHA'
+      - '--region'
+      - 'asia-northeast1'  # 東京リージョン
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,VITE_LLM_ENDPOINT=${_LLM_ENDPOINT}'
+
+# 代替変数
+substitutions:
+  _LLM_ENDPOINT: 'https://api.openai.com/v1/chat/completions'
+
+# オプション
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -1,6 +1,32 @@
 import { EXERCISE_LIST, findExerciseByKeyword } from '../data/exerciseTypes.js';
 
-const LLM_ENDPOINT = 'http://localhost:1234/v1/chat/completions';
+const LLM_ENDPOINT = import.meta.env.VITE_LLM_ENDPOINT || 'http://localhost:1234/v1/chat/completions';
+const LLM_API_KEY = import.meta.env.VITE_LLM_API_KEY;
+
+// リクエストヘッダーの設定（APIキー対応）
+const getRequestHeaders = () => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  // OpenAI API
+  if (LLM_ENDPOINT.includes('api.openai.com') && LLM_API_KEY) {
+    headers['Authorization'] = `Bearer ${LLM_API_KEY}`;
+  }
+  
+  // Anthropic Claude API
+  if (LLM_ENDPOINT.includes('api.anthropic.com') && LLM_API_KEY) {
+    headers['x-api-key'] = LLM_API_KEY;
+    headers['anthropic-version'] = '2023-06-01';
+  }
+  
+  // Google Gemini API
+  if (LLM_ENDPOINT.includes('generativelanguage.googleapis.com') && LLM_API_KEY) {
+    // Gemini APIはURLにキーを含める
+  }
+  
+  return headers;
+};
 
 const GYM_SYSTEM_PROMPT = `あなたはジムでの筋トレ記録を解析するアシスタントです。
 日本語の自然な表現から、以下の情報を抽出してJSON形式で返してください：
@@ -152,12 +178,30 @@ export const processWithLLM = async (text, customExercises = []) => {
     
     console.log('LLMリクエスト:', JSON.stringify(requestBody, null, 2));
     
-    const response = await fetch(LLM_ENDPOINT, {
+    // エンドポイントとリクエストボディの調整（API種別に応じて）
+    let finalEndpoint = LLM_ENDPOINT;
+    let finalRequestBody = requestBody;
+    
+    // Google Gemini APIの場合、特別な形式に変更
+    if (LLM_ENDPOINT.includes('generativelanguage.googleapis.com')) {
+      finalEndpoint = `${LLM_ENDPOINT}?key=${LLM_API_KEY}`;
+      finalRequestBody = {
+        contents: [
+          {
+            parts: [{ text: `${systemPrompt}\n\nUser: ${text}` }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.3,
+          maxOutputTokens: 500,
+        }
+      };
+    }
+
+    const response = await fetch(finalEndpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
+      headers: getRequestHeaders(),
+      body: JSON.stringify(finalRequestBody)
     });
 
     if (!response.ok) {
@@ -169,11 +213,28 @@ export const processWithLLM = async (text, customExercises = []) => {
     const data = await response.json();
     console.log('LLMレスポンス:', data);
     
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      throw new Error('無効なLLMレスポンス形式');
-    }
+    let content;
     
-    const content = data.choices[0].message.content.trim();
+    // レスポンス形式の統一（API種別に応じて）
+    if (LLM_ENDPOINT.includes('generativelanguage.googleapis.com')) {
+      // Google Gemini API
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        throw new Error('無効なGemini APIレスポンス形式');
+      }
+      content = data.candidates[0].content.parts[0].text.trim();
+    } else if (LLM_ENDPOINT.includes('api.anthropic.com')) {
+      // Anthropic Claude API
+      if (!data.content || !data.content[0]) {
+        throw new Error('無効なClaude APIレスポンス形式');
+      }
+      content = data.content[0].text.trim();
+    } else {
+      // OpenAI API or LM Studio (OpenAI compatible)
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        throw new Error('無効なLLMレスポンス形式');
+      }
+      content = data.choices[0].message.content.trim();
+    }
     
     // JSONの抽出（コードブロックがある場合に対応）
     const jsonMatch = content.match(/\{[\s\S]*\}/);

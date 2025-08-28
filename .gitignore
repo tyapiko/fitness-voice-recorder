@@ -13,6 +13,7 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
 
 # Logs
 npm-debug.log*
@@ -96,3 +97,17 @@ Thumbs.db
 
 # Local development
 *.local
+
+# GCP credentials and secrets
+service-account-key.json
+gcp-credentials.json
+*.credentials.json
+
+# Deployment artifacts
+.deploy/
+deployment-logs/
+
+# Database backups
+*.sql
+*.db
+*.sqlite
